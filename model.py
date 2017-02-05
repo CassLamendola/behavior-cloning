@@ -35,7 +35,7 @@ X_train, y_train = shuffle(X_train, y_train)
 X_train, X_test, y_train, y_test = train_test_split(X_train, y_train, test_size=0.2)
 
 ##### Generate More Data #####
-#datagen = ImageDataGenerator()
+datagen = ImageDataGenerator()
 
 ##### Variables #####
 input_shape = X_train.shape[1:]
@@ -151,7 +151,8 @@ model.fit(X_train, y_train,
 	validation_split=0.2,
 	shuffle=True)
 
-
+model.save('./model.h5')
+print('Model saved')
 
 
 
