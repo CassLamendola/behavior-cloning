@@ -10,12 +10,13 @@ from keras.layers.core import Flatten, Dropout, Activation
 from keras.optimizers import Adam
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
+import pdb
 
 ##### Load data #####
 driving_log = pandas.read_csv('driving_log.csv', delimiter=',', 
 	names=['CENTER', 'LEFT', 'RIGHT', 'STEERING_ANGLE', 'THROTTLE', 'BREAK', 'SPEED'])
 driving_log = driving_log[['CENTER', 'STEERING_ANGLE']]
-#print(driving_log.head(n=10))
+print(driving_log.head(n=10))
 
 X_train = []
 y_train = []
@@ -24,13 +25,17 @@ for index, row in driving_log.iterrows():
 	y_train.append(row['STEERING_ANGLE'])
 X_train = np.array(X_train)
 y_train = np.array(y_train)
-#print(X_train.shape)
-#print(y_train.shape)
+
+print(X_train.shape)
+print(y_train.shape)
 
 ##### Split Data #####
 # Shuffle and separate training and test data
 X_train, y_train = shuffle(X_train, y_train)
 X_train, X_test, y_train, y_test = train_test_split(X_train, y_train, test_size=0.2)
+
+##### Generate More Data #####
+#datagen = ImageDataGenerator()
 
 ##### Variables #####
 input_shape = X_train.shape[1:]
