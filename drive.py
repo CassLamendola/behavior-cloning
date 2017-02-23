@@ -1,6 +1,9 @@
 import argparse
 import base64
 import json
+import os
+
+os.environ['TF_CPP_MIN_LOG_LEVEL']='3'
 
 import numpy as np
 import socketio
@@ -11,6 +14,8 @@ from PIL import Image
 from PIL import ImageOps
 from flask import Flask, render_template
 from io import BytesIO
+import cv2
+from skimage.exposure import adjust_gamma
 
 from keras.models import model_from_json
 from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array
@@ -37,6 +42,10 @@ def telemetry(sid, data):
     imgString = data["image"]
     image = Image.open(BytesIO(base64.b64decode(imgString)))
     image_array = np.asarray(image)
+    image_array = image_array[60:126,60:260]
+    image_array = cv2.cvtColor(image_array, cv2.COLOR_BGR2YUV)
+    image_array = cv2.GaussianBlur(image_array, (3,3), 0)
+    image_array = cv2.cvtColor(image_array, cv2.COLOR_BGR2YUV)
     transformed_image_array = image_array[None, :, :, :]
     # This model currently assumes that the features of the model are just the images. Feel free to change this.
     steering_angle = float(model.predict(transformed_image_array, batch_size=1))
@@ -61,21 +70,23 @@ def send_control(steering_angle, throttle):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Remote Driving')
-    parser.add_argument('model', type=str,
+    parser.add_argument('-m', '--model', type=str,
     help='Path to model definition json. Model weights should be on the same path.')
+    parser.add_argument('-w', '--weights', type=str,
+    help='Path to weights file. (Optional)')
     args = parser.parse_args()
     with open(args.model, 'r') as jfile:
         # NOTE: if you saved the file by calling json.dump(model.to_json(), ...)
         # then you will have to call:
         #
-        #   model = model_from_json(json.loads(jfile.read()))\
+           model = model_from_json(json.loads(jfile.read()))
         #
         # instead.
-        model = model_from_json(jfile.read())
+        #model = model_from_json(jfile.read())
 
 
     model.compile("adam", "mse")
-    weights_file = args.model.replace('json', 'h5')
+    weights_file = args.weights if args.weights else args.model.replace('json', 'h5') 
     model.load_weights(weights_file)
 
     # wrap Flask application with engineio's middleware
