@@ -110,8 +110,8 @@ At this point, the unpredictability of the models led me to research the Keras c
 
 On the final round of fine-tuning which produced a working model, the learning rate was set at 0.000001 and trained for 40 epochs. Finally, the vehicle was able to drive autonomously around the track without leaving the road or crossing any lines.
 
-For augmentation during fine-tuning, I didn't include every side camera image or flipped image. I implemented a [function](https://github.com/CassLamendola/behavior-cloning/blob/master/model.py#L248-L249) to only use only a certain percent of side images and flipped images. After the collection and augmentation processes, I had over 60,000 data points to train on.
+For augmentation during fine-tuning, I didn't include every side camera image or flipped image. I implemented a [function](https://github.com/CassLamendola/behavior-cloning/blob/master/model.py#L248-L249) to use only a certain percentage of side images and flipped images. After the collection and augmentation processes, I had over 60,000 data points to train on.
 
-The data was split into 80% training and 20% validation. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was between 3 and 10 for training and no more than 30 for fine-tuning. I also implemented [early stopping](https://github.com/CassLamendola/behavior-cloning/blob/master/model.py#L64) if the loss did not improve for more than 3 epochs.
+The data was split into 80% training and 20% validation. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was between 3 and 10 for training and no more than 40 for fine-tuning. I also implemented [early stopping](https://github.com/CassLamendola/behavior-cloning/blob/master/model.py#L64) if the loss did not improve for more than 3 epochs.
 
 [Here](https://vimeo.com/205326783) is the link to the video of my final model.
