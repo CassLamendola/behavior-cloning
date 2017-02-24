@@ -15,7 +15,7 @@ My project includes the following files:
 * model.py - to create and train the model
 * drive.py - for driving the car in autonomous mode
 * model.h5 & model.json - containing a trained CNN
-* writeup\_report.md summarizing the results
+* writeup\_report.md - summarizing the results
 
 #### 2. Submission includes functional code
 
@@ -31,17 +31,17 @@ The model.py file contains the code for training and saving the convolution neur
 ### Model Architecture and Training Strategy
 #### 1. An appropriate model architecture has been employed
 
-The model consists of a CNN with 5 convolutional layers, 3 hidden fully connected layers, and a final output layer. The first 3 convolutional layers use 5x5 filter size and a stride of 2. The 4th and 5th convolutional layers use 3x3 filters and a stride of 1. The depths of the convolutions range from 24 to 64. [At model.py L66-L82](https://github.com/CassLamendola/behavior-cloning/blob/master/model.py#L66-L82)
+The [model](https://github.com/CassLamendola/behavior-cloning/blob/master/model.py#L66-L82) consists of a CNN with 5 convolutional layers, 3 hidden fully connected layers, and a final output layer. The first 3 convolutional layers use 5x5 filter size and a stride of 2. The 4th and 5th convolutional layers use 3x3 filters and a stride of 1. The depths of the convolutions range from 24 to 64.
 
 The model includes ReLu layers to introduce nonlinearity and the data is normalized in the model using [Keras Lambda layer](https://github.com/CassLamendola/behavior-cloning/blob/master/model.py#L258). 
 
 #### 2. Attempts to reduce overfitting in the model
 
-The model contains a [dropout layer](https://github.com/CassLamendola/behavior-cloning/blob/master/model.py#L292) on the last convolutional layer to reduce overfitting. (model.py line 294)
+The model contains a [dropout layer](https://github.com/CassLamendola/behavior-cloning/blob/master/model.py#L292) on the last convolutional layer to reduce overfitting.
 
 #### 3. Model parameter tuning
 
-The model used an Adam optimizer with a learning rate of 0.001 for training and 0.00001 for fine-tuning the model. [At model.py L94-L99](https://github.com/CassLamendola/behavior-cloning/blob/master/model.py#L94-L99)
+The model used an Adam optimizer with a [learning rate](https://github.com/CassLamendola/behavior-cloning/blob/master/model.py#L94-L99) of 0.001 for training and 0.00001 for fine-tuning the model.
 
 #### 4. Appropriate training data
 
@@ -94,24 +94,24 @@ The first few times, the steering angle didn't change and the vehicle drove righ
 
 I placed the car near the edge of the lane and recorded the car driving back to center. At some places I simply recorded the car sitting still with the wheel turned all the way to one side for a few frames. With this much data, I was having mixed results.
 
-After that, every model I trained came so close to finishing the track, but crossed the line in one or two places. At this point I decided to implement fine-tuning. [This](https://blog.keras.io/building-powerful-image-classification-models-using-very-little-data.html) was a helpful resource. I collected data at the point of the track where the vehicle was crossing the line and fine-tuned on that data. Additionally, I tried freezing model layers for fine-tuning as described in the Keras blog listed above, but I saw poor results. The model swerved back and forth across the track, crashing almost immediately.
+After that, every model I trained came so close to finishing the track, but crossed the line in one or two places. At this point I decided to implement fine-tuning. [This](https://blog.keras.io/building-powerful-image-classification-models-using-very-little-data.html) was a helpful resource. I collected data at the point of the track where the vehicle was crossing the line and fine-tuned on that data. Additionally, I tried freezing model layers for fine-tuning as described in the Keras blog listed above, but I saw poor results. The model swerved back and forth across the track, crashing almost immediately. Other times, the vehicle would complete the "problem" region of the track, but crash elsewhere. 
 
-When I first implemented fine-tuning, I had the problem of the model overfitting to the fine-tuning data. The vehicle would complete that region of the track, but crash elsewhere. To combat this, I added the fine-tuning data to the original dataset and retrained from scratch. This didn't have much of an effect on the performance of the model, but it also resulted in very random results from one training to the next. 
+The model seemed to be overfitting to the fine-tuning data. To combat this, I added the fine-tuning data to the original dataset and retrained from scratch. This didn't have much of an effect on the performance of the model, and it also resulted in very random results from one training to the next. 
 
-At this point, the unpredictability of the models led me to research the Keras checkpoint callbacks. The checkpoint callback generates a new set of weights after each epoch, which allowed me to select the best set of weights from a training run. It seemed probable that my data was partly to blame for the bad performance, as I had collected so much specific recovery data. So I decided to start fresh with new data. Eventually, I settled on a very methodical approach, described as follows:
+At this point, the unpredictability of the models led me to research the Keras checkpoint callbacks. The checkpoint callback generates a new set of weights after each epoch, which allowed me to select the best set of weights from a training run. It seemed probable that my data was partly to blame for the bad performance, as I had collected so much specific recovery data, so I decided to start fresh with new data. Eventually, I settled on a very methodical approach, described as follows:
 
-1. Generate training data consisting of 3 times around the track, driving in the center of the lane, each way.
+1. Generate training data consisting of 6 times around the track, driving in the center of the lane (3 times clockwise, and 3 times counterclockwise)
 2. Train the model for 5 epochs with a fairly high learning rate of 0.001
-3. Test the weights from each epoch in the simulator to select the best one. Repeat step 2 until a set of weights allows the car to drive around the track with minor errors.
-4. Generate new training data that consists only of recovery data from the parts of the track where the model had issues.
-5. Fine-tune the model with a learning rate one order of magnitude lower than before for twice as many epochs
-6. Test the weights as in step 2 to find improvements. (In some cases, the improvements were so slight that I recorded the steering angle with my cell phone to determine whether or not the model had improved. The difference was sometimes as slight as 2.5 vs 2.4)
-7. Repeat steps 5 and 6 until a working model is created.
+3. Test the weights from each epoch in the simulator to select the best one. Repeat step 2 until a set of weights allows the car to drive around the track with minor errors
+4. Generate new training data that consists only of recovery data from the parts of the track where the model had issues
+5. Fine-tune the model with a learning rate one order of magnitude lower than before for twice as many epochs (lr = 0.0001 for 10 epochs, lr = 0.00001 for 20 epochs and so on)
+6. Test the weights as in step 3 to find improvements. (In some cases, the improvements were so slight that I recorded the steering angle with my cell phone to determine whether or not the model had improved. The difference was sometimes as slight as 2.5 vs 2.4)
+7. Repeat steps 4, 5, and 6 until a working model is created
 
 On the final round of fine-tuning which produced a working model, the learning rate was set at 0.000001 and trained for 40 epochs. Finally, the vehicle was able to drive autonomously around the track without leaving the road or crossing any lines.
 
-I thought the more data the better, so I went back to the simulator. I drove around the track 3 more times counter-clockwise and the same number of times clockwise to make sure the model would not be biased toward turning left. For augmentation, I didn't include every side camera image or flipped image. I implemented a function to only use 80% of side images and 40% of flipped images (lines 56 - 58 and 250 in model.py). After the collection and augmentation processes, I had over 60,000 data points to train on.
+For augmentation during fine-tuning, I didn't include every side camera image or flipped image. I implemented a [function](https://github.com/CassLamendola/behavior-cloning/blob/master/model.py#L248-L249) to only use only a certain percent of side images and flipped images. After the collection and augmentation processes, I had over 60,000 data points to train on.
 
-The data was split into 80% training and 20% validation. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was between 3 and 10 for training and no more than 30 for fine-tuning. I also implemented early stopping if the loss did not improve for more than 3 epochs (line 66 in model.py)
+The data was split into 80% training and 20% validation. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was between 3 and 10 for training and no more than 30 for fine-tuning. I also implemented [early stopping](https://github.com/CassLamendola/behavior-cloning/blob/master/model.py#L64) if the loss did not improve for more than 3 epochs.
 
 [Here](https://vimeo.com/205326783) is the link to the video of my final model.
